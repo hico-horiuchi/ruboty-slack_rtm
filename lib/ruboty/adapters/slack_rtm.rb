@@ -37,7 +37,7 @@ module Ruboty
             unfurl_links: true,
             as_user: true,
             attachments: message[:attachments].to_json,
-            thread_ts: message[:thread_ts] || message[:original][:thread_ts]
+            thread_ts: message[:thread_ts] || message.dig(:original, :thread_ts)
           )
         elsif message[:file]
           path = message[:file][:path]
@@ -48,7 +48,7 @@ module Ruboty
             title: message[:file][:title] || path,
             filename: File.basename(path),
             initial_comment: message[:body] || '',
-            thread_ts: message[:thread_ts] || message[:original][:thread_ts]
+            thread_ts: message[:thread_ts] || message.dig(:original, :thread_ts)
           )
         else
           client.chat_postMessage(
@@ -56,7 +56,7 @@ module Ruboty
             text: message[:code] ?  "```\n#{message[:body]}\n```" : resolve_send_mention(message[:body]),
             as_user: true,
             mrkdwn: true,
-            thread_ts: message[:thread_ts] || message[:original][:thread_ts]
+            thread_ts: message[:thread_ts] || message.dig(:original, :thread_ts)
           )
         end
       end
