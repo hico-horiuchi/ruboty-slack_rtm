@@ -301,7 +301,7 @@ module Ruboty
       end
 
       def make_channels_cache
-        resp = client.channels_list
+        resp = client.conversations_list
         if resp['ok']
           resp['channels'].each do |channel|
             @channel_info_caches[channel['id']] = channel
