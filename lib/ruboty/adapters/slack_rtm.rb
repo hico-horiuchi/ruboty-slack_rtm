@@ -292,29 +292,62 @@ module Ruboty
       end
 
       def make_users_cache
-        resp = client.users_list
+        users = []
+        options = { limit: 1_000 }
+        resp = client.users_list(options)
+
         if resp['ok']
-          resp['members'].each do |user|
-            @user_info_caches[user['id']] = user
+          users.concat(resp['members'])
+
+          while resp&.[]('response_metadata')&.[]('next_cursor') != ''
+            options[:cursor] = resp['response_metadata']['next_cursor']
+            resp = client.users_list(options)
+            users.concat(resp['members']) if resp['ok']
           end
+        end
+
+        users.each do |user|
+          @user_info_caches[user['id']] = user
         end
       end
 
       def make_channels_cache
-        resp = client.conversations_list
+        channels = []
+        options = { limit: 1_000, exclude_archived: true }
+        resp = client.conversations_list(options)
+
         if resp['ok']
-          resp['channels'].each do |channel|
-            @channel_info_caches[channel['id']] = channel
+          channels.concat(resp['channels'])
+
+          while resp&.[]('response_metadata')&.[]('next_cursor') != ''
+            options[:cursor] = resp['response_metadata']['next_cursor']
+            resp = client.conversations_list(options)
+            channels.concat(resp['channels']) if resp['ok']
           end
+        end
+
+        channels.each do |channel|
+          @channel_info_caches[channel['id']] = channel
         end
       end
 
       def make_usergroups_cache
-        resp = client.get("usergroups.list")
+        usergroups = []
+        options = { limit: 1_000, include_count: false, include_disabled: false, include_users: false }
+        resp = client.get("usergroups.list", options)
+
         if resp['ok']
-          resp['usergroups'].each do |usergroup|
-            @usergroup_info_caches[usergroup['id']] = usergroup
+          usergroups.concat(resp['usergroups'])
+
+          while resp&.[]('response_metadata')&.[]('next_cursor') != ''
+            options[:cursor] = resp['response_metadata']['next_cursor']
+            resp = client.get("usergroups.list", options)
+            usergroups.concat(resp['usergroups']) if resp['ok']
           end
+        end
+
+        usergroups.each do |usergroup|
+          @usergroup_info_caches[usergroup['id']] = usergroup
         end
       end
 
